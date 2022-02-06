@@ -1,0 +1,8 @@
+[submodule "news_backend"]
+	path = news_backend
+	url = https://github.com/rom88n/news_backend
+  branch = master
+[submodule "news_frontend"]
+	path = news_frontend
+	url = https://github.com/rom88n/news_frontend
+  branch = master
