@@ -1,14 +1,95 @@
 version: '3.8'
 services:
-  postgres:
-    image: postgres:13
-    restart: always
+  backend:
+    hostname: news_backend
+    container_name: news_backend
+    build:
+      context: ./news_backend
+      dockerfile: ./Dockerfile
+    env_file:
+      - news_backend/.env
+    command: sh -c "yarn start"
     environment:
-      - POSTGRES_USER=db_user
-      - POSTGRES_PASSWORD=db_password
-    volumes:
-      - postgres:/var/lib/postgresql/data
+      - PORT=3030
+      - DATABASE_URL=postgres://user:password@db:5432/db?connect_timeout=300
+      - SESSION_SECRET=Y2U1G3CN21UG3HFUY21NHU3IHFI12MHDI3
     ports:
-      - '5432:5432'
+      - "3030:3030"
+    networks:
+      - default
+#    depends_on:
+#      db:
+#        condition: service_healthy
+#    volumes:
+#      - ./news_backend:/news_backend:cached
+
+  frontend:
+    hostname: news_frontend
+    container_name: news_frontend
+    command: sh -c "yarn start"
+    build:
+      context: ./news_frontend
+      dockerfile: ./Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_HTTP_API_ENDPOINT: http://news_backend:3030
+    volumes:
+      - ./news_frontend/src:/news_frontend/src:cached
+    depends_on:
+      - db
+    networks:
+      - default
+
+#  postgres:
+#    image: postgres:12.6-alpine
+#    restart: always
+#    user: postgres
+#    environment:
+#      - POSTGRES_USER=db_user
+#      - POSTGRES_DB=db
+#      - POSTGRES_PASSWORD=db_password
+#    volumes:
+#      - postgres:/var/lib/postgresql/data
+#      - ES_JAVA_OPTS=-Xms1024m -Xmx3072m
+#    networks:
+#      - esnet
+#    ports:
+#      - '5432:5432'
+#    healthcheck:
+#      test: [ "CMD-SHELL", "pg_isready" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+
+  db:
+    image: postgres:11.2-alpine
+    restart: always
+    container_name: postgres12_6
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - default
+    user:
+      postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+#    healthcheck:
+#      test: [ "CMD-SHELL", "pg_isready" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 5432:5432
+
+networks:
+  default:
+
 volumes:
   postgres:
