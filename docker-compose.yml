@@ -12,7 +12,7 @@ services:
     environment:
       - PORT=3030
       - DATABASE_URL=postgres://user:password@db:5432/db?connect_timeout=300
-      - SESSION_SECRET=Y2U1G3CN21UG3HFUY21NHU3IHFI12MHDI3
+      - COOKIE_SECRET=Y2U1G3CN21UG3HFUY21NHU3IHFI12MHDI3
     ports:
       - "3030:3030"
     networks:
