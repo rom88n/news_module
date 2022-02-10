@@ -1,4 +1,4 @@
-version: '3.8'
+version: '2'
 services:
   backend:
     hostname: news_backend
@@ -6,90 +6,70 @@ services:
     build:
       context: ./news_backend
       dockerfile: ./Dockerfile
-    env_file:
-      - news_backend/.env
     command: sh -c "yarn start"
+    links:
+      - mongodb
+    env_file: ./news_backend/.env
     environment:
+      - MONGO_USERNAME=newsuser
+      - MONGO_PASSWORD=12345678
+      - MONGO_HOSTNAME=mongodb
+      - MONGO_PORT=27017
+      - MONGO_DB=news-app
       - PORT=3030
-      - DATABASE_URL=postgres://user:password@db:5432/db?connect_timeout=300
+      - NODE_ENV=production
       - COOKIE_SECRET=Y2U1G3CN21UG3HFUY21NHU3IHFI12MHDI3
+    networks:
+      - frontend
+      - backend
     ports:
       - "3030:3030"
-    networks:
-      - default
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#    volumes:
-#      - ./news_backend:/news_backend:cached
-
-  frontend:
-    hostname: news_frontend
-    container_name: news_frontend
-    command: sh -c "yarn start"
-    build:
-      context: ./news_frontend
-      dockerfile: ./Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      BACKEND_HTTP_API_ENDPOINT: http://news_backend:3030
-    volumes:
-      - ./news_frontend/src:/news_frontend/src:cached
     depends_on:
-      - db
-    networks:
-      - default
+      mongodb:
+        condition: service_healthy
 
-#  postgres:
-#    image: postgres:12.6-alpine
-#    restart: always
-#    user: postgres
-#    environment:
-#      - POSTGRES_USER=db_user
-#      - POSTGRES_DB=db
-#      - POSTGRES_PASSWORD=db_password
-#    volumes:
-#      - postgres:/var/lib/postgresql/data
-#      - ES_JAVA_OPTS=-Xms1024m -Xmx3072m
+#  frontend:
+#    hostname: news_frontend
+#    container_name: news_frontend
+#    command: sh -c "yarn start"
+#    build:
+#      context: ./news_frontend
+#      dockerfile: ./Dockerfile
 #    networks:
-#      - esnet
+#      - frontend
 #    ports:
-#      - '5432:5432'
-#    healthcheck:
-#      test: [ "CMD-SHELL", "pg_isready" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
+#      - "3000:3000"
+#    environment:
+#      BACKEND_HTTP_API_ENDPOINT: http://news_backend:3030
+#    depends_on:
+#      - mongodb
 
-  db:
-    image: postgres:11.2-alpine
+  mongodb:
+    container_name: mongo_db
+    image: mongo
     restart: always
-    container_name: postgres12_6
     environment:
-      - POSTGRES_DB=db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      MONGO_INITDB_DATABASE: news-app
+      MONGO_INITDB_ROOT_USERNAME: newsuser
+      MONGO_INITDB_ROOT_PASSWORD: 12345678
     networks:
-      - default
-    user:
-      postgres
+      - backend
+    healthcheck:
+      test: mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
-#    healthcheck:
-#      test: [ "CMD-SHELL", "pg_isready" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-
-  adminer:
-    image: adminer
-    restart: always
+      - ./api/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongodb_data_container:/data/db
     ports:
-      - 5432:5432
+      - "27017-27019:27017-27019"
 
 networks:
-  default:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
 
 volumes:
-  postgres:
+  mongodb_data_container:

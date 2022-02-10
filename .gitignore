@@ -3,3 +3,4 @@ modules.xml
 vcs.xml
 news_module.iml
 .idea/*
+mongodb_data_container
