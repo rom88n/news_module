@@ -36,7 +36,8 @@ services:
     environment:
       BACKEND_HTTP_API_ENDPOINT: http://news_backend:3030
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
 
   mongodb:
     container_name: mongo_db
