@@ -30,7 +30,7 @@ services:
       context: ./news_frontend
       dockerfile: ./Dockerfile
     networks:
-      - frontend
+      - network
     ports:
       - "3000:3000"
     environment:
