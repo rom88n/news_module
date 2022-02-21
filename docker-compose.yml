@@ -1,4 +1,4 @@
-version: '3.5'
+version: '2.1'
 services:
   backend:
     hostname: news_backend
@@ -49,7 +49,6 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-      start_period: 20s
     environment:
       - MONGO_INITDB_ROOT_USERNAME=$MONGO_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
